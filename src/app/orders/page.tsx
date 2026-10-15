@@ -114,7 +114,7 @@ export default function OrdersPage() {
                   </span>
                 </div>
 
-                {order.order_items.length > 0 ? (
+                {order.order_items.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-2">
                     {order.order_items.map((oi, i) => (
                       <span
@@ -125,14 +125,22 @@ export default function OrdersPage() {
                       </span>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-400 mb-2 italic">No items selected</p>
                 )}
 
-                {order.notes && (
-                  <p className="text-sm text-gray-500 mt-2 italic border-t border-gray-100 pt-2">
-                    &ldquo;{order.notes}&rdquo;
+                {order.notes && order.order_items.length > 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    <span className="font-medium text-gray-400">💬</span> {order.notes}
                   </p>
+                )}
+
+                {order.notes && order.order_items.length === 0 && (
+                  <p className="text-sm text-gray-800">
+                    <span className="font-medium text-gray-400">🍽️</span> {order.notes}
+                  </p>
+                )}
+
+                {!order.notes && order.order_items.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">No selection yet</p>
                 )}
               </div>
             ))}

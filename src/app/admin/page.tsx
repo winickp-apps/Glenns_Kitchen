@@ -242,13 +242,22 @@ export default function AdminPage() {
                       ))}
                     </div>
                   )}
-                  {order.notes ? (
-                    <p className="text-sm text-gray-600 italic border-t border-gray-100 pt-2 mt-1">
-                      &ldquo;{order.notes}&rdquo;
+
+                  {order.notes && order.order_items.length > 0 && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      <span className="text-gray-400">💬</span> {order.notes}
                     </p>
-                  ) : order.order_items.length === 0 ? (
+                  )}
+
+                  {order.notes && order.order_items.length === 0 && (
+                    <p className="text-sm text-gray-800">
+                      <span className="text-gray-400">🍽️</span> {order.notes}
+                    </p>
+                  )}
+
+                  {!order.notes && order.order_items.length === 0 && (
                     <p className="text-sm text-gray-400 italic">No selection yet</p>
-                  ) : null}
+                  )}
                 </div>
               ))}
             </div>

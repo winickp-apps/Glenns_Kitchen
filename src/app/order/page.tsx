@@ -200,35 +200,73 @@ export default function OrderPage() {
           </div>
         )}
 
-        {/* Custom request */}
-        <div className="mt-4">
-          {menuItems.length > 0 && (
+        {/* Comment on selection */}
+        {menuItems.length > 0 && selected.size > 0 && (
+          <div className="mt-3">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              💬 Add a comment
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => {
+                setNotes(e.target.value)
+                if (submitted) setSubmitted(false)
+              }}
+              placeholder="e.g. No onions, extra spicy, allergy note..."
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none"
+            />
+          </div>
+        )}
+
+        {/* Custom dish — shown when nothing picked from menu, or as an OR alternative */}
+        {menuItems.length > 0 && (
+          <div className="mt-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="flex-1 h-px bg-gray-200" />
               <span className="text-xs text-gray-400 font-medium">OR</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
-          )}
-          <label className="block text-sm font-medium text-gray-600 mb-2">
-            {menuItems.length > 0
-              ? "Want something different? Write your own request"
-              : "What do you want tonight?"}
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => {
-              setNotes(e.target.value)
-              if (submitted) setSubmitted(false)
-            }}
-            placeholder={
-              menuItems.length > 0
-                ? "e.g. Just a salad for me, or can you do pasta?"
-                : "e.g. Pizza, or just a salad please..."
-            }
-            rows={3}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none"
-          />
-        </div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              🍽️ Request something else entirely
+            </label>
+            <textarea
+              value={selected.size === 0 ? notes : ''}
+              onChange={(e) => {
+                if (selected.size === 0) {
+                  setNotes(e.target.value)
+                  if (submitted) setSubmitted(false)
+                }
+              }}
+              disabled={selected.size > 0}
+              placeholder="e.g. Can I just have pasta tonight?"
+              rows={2}
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none disabled:opacity-40 disabled:bg-gray-50"
+            />
+            {selected.size > 0 && (
+              <p className="text-xs text-gray-400 mt-1">Deselect menu items above to use this instead</p>
+            )}
+          </div>
+        )}
+
+        {/* No menu posted — free text only */}
+        {menuItems.length === 0 && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              🍽️ What do you want tonight?
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => {
+                setNotes(e.target.value)
+                if (submitted) setSubmitted(false)
+              }}
+              placeholder="e.g. Pizza, just a salad, pasta please..."
+              rows={3}
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none"
+            />
+          </div>
+        )}
       </div>
 
       {/* Submit button */}
