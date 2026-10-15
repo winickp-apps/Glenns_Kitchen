@@ -241,20 +241,20 @@ export default function OrderPage() {
             </label>
             <textarea
               value={customRequest}
+              onFocus={() => {
+                if (selected.size > 0) {
+                  setSelected(new Set())
+                  if (submitted) setSubmitted(false)
+                }
+              }}
               onChange={(e) => {
                 setCustomRequest(e.target.value)
                 if (submitted) setSubmitted(false)
               }}
-              disabled={selected.size > 0}
               placeholder="e.g. Can I just have pasta tonight?"
               rows={2}
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none disabled:opacity-40 disabled:bg-gray-50"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none"
             />
-            {selected.size > 0 && (
-              <p className="text-xs text-gray-400 mt-1">
-                Deselect menu items above to use this instead
-              </p>
-            )}
           </div>
         )}
 
