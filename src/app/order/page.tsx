@@ -10,7 +10,8 @@ export default function OrderPage() {
   const [memberId, setMemberId] = useState<string | null>(null)
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [notes, setNotes] = useState('')
+  const [comment, setComment] = useState('')         // note on a menu selection
+  const [customRequest, setCustomRequest] = useState('') // free-text custom dish
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -37,13 +38,18 @@ export default function OrderPage() {
 
     if (orderRes.data) {
       setExistingOrderId(orderRes.data.id)
-      setNotes(orderRes.data.notes ?? '')
       const ids = new Set<string>(
         (orderRes.data.order_items ?? []).map(
           (oi: { menu_item_id: string }) => oi.menu_item_id
         )
       )
       setSelected(ids)
+      // Route the saved notes back to the right field
+      if (ids.size > 0) {
+        setComment(orderRes.data.notes ?? '')
+      } else {
+        setCustomRequest(orderRes.data.notes ?? '')
+      }
       setSubmitted(true)
     }
 
@@ -74,6 +80,9 @@ export default function OrderPage() {
   async function submitOrder() {
     if (!memberId) return
     setSubmitting(true)
+
+    // Use comment if items selected, customRequest otherwise
+    const notes = selected.size > 0 ? comment : customRequest
 
     try {
       let orderId = existingOrderId
@@ -200,16 +209,16 @@ export default function OrderPage() {
           </div>
         )}
 
-        {/* Comment on selection */}
+        {/* Comment on selection — only shown when something is picked */}
         {menuItems.length > 0 && selected.size > 0 && (
           <div className="mt-3">
             <label className="block text-sm font-medium text-gray-600 mb-2">
               💬 Add a comment
             </label>
             <textarea
-              value={notes}
+              value={comment}
               onChange={(e) => {
-                setNotes(e.target.value)
+                setComment(e.target.value)
                 if (submitted) setSubmitted(false)
               }}
               placeholder="e.g. No onions, extra spicy, allergy note..."
@@ -219,7 +228,7 @@ export default function OrderPage() {
           </div>
         )}
 
-        {/* Custom dish — shown when nothing picked from menu, or as an OR alternative */}
+        {/* Custom dish — separate state, never shares with comment */}
         {menuItems.length > 0 && (
           <div className="mt-4">
             <div className="flex items-center gap-3 mb-3">
@@ -231,12 +240,10 @@ export default function OrderPage() {
               🍽️ Request something else entirely
             </label>
             <textarea
-              value={selected.size === 0 ? notes : ''}
+              value={customRequest}
               onChange={(e) => {
-                if (selected.size === 0) {
-                  setNotes(e.target.value)
-                  if (submitted) setSubmitted(false)
-                }
+                setCustomRequest(e.target.value)
+                if (submitted) setSubmitted(false)
               }}
               disabled={selected.size > 0}
               placeholder="e.g. Can I just have pasta tonight?"
@@ -244,7 +251,9 @@ export default function OrderPage() {
               className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none disabled:opacity-40 disabled:bg-gray-50"
             />
             {selected.size > 0 && (
-              <p className="text-xs text-gray-400 mt-1">Deselect menu items above to use this instead</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Deselect menu items above to use this instead
+              </p>
             )}
           </div>
         )}
@@ -256,9 +265,9 @@ export default function OrderPage() {
               🍽️ What do you want tonight?
             </label>
             <textarea
-              value={notes}
+              value={customRequest}
               onChange={(e) => {
-                setNotes(e.target.value)
+                setCustomRequest(e.target.value)
                 if (submitted) setSubmitted(false)
               }}
               placeholder="e.g. Pizza, just a salad, pasta please..."
