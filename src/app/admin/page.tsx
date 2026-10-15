@@ -4,7 +4,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, type FamilyMember, type MenuItem } from '@/lib/supabase'
 
-type AdminView = 'lock' | 'menu' | 'members'
+type AdminView = 'lock' | 'orders' | 'menu' | 'members'
+
+type OrderSummary = {
+  id: string
+  notes: string | null
+  submitted_at: string
+  family_members: FamilyMember
+  order_items: { menu_items: MenuItem }[]
+}
 
 export default function AdminPage() {
   const router = useRouter()
@@ -12,6 +20,9 @@ export default function AdminPage() {
   const [pin, setPin] = useState('')
   const [pinError, setPinError] = useState(false)
   const [pinLoading, setPinLoading] = useState(false)
+
+  // Orders state
+  const [orders, setOrders] = useState<OrderSummary[]>([])
 
   // Menu state
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
@@ -31,13 +42,24 @@ export default function AdminPage() {
     setPinError(false)
     const { data } = await supabase.rpc('verify_admin_pin', { input_pin: pin })
     if (data === true) {
-      setView('menu')
-      loadMenu()
-      loadMembers()
+      setView('orders')
     } else {
       setPinError(true)
     }
     setPinLoading(false)
+  }
+
+  async function loadOrders() {
+    const { data } = await supabase
+      .from('orders')
+      .select(`
+        id, notes, submitted_at,
+        family_members(id, name, display_order),
+        order_items(menu_items(id, name))
+      `)
+      .eq('date', today)
+      .order('submitted_at')
+    setOrders((data ?? []) as unknown as OrderSummary[])
   }
 
   async function loadMenu() {
@@ -59,6 +81,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (view !== 'lock') {
+      loadOrders()
       loadMenu()
       loadMembers()
     }
@@ -167,7 +190,7 @@ export default function AdminPage() {
 
       {/* Tab switcher */}
       <div className="flex gap-2 mb-5">
-        {(['menu', 'members'] as const).map((tab) => (
+        {(['orders', 'menu', 'members'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setView(tab)}
@@ -177,10 +200,61 @@ export default function AdminPage() {
                 : 'bg-white text-gray-500 border border-orange-100'
             }`}
           >
-            {tab === 'menu' ? '🍽️ Tonight\'s Menu' : '👥 Family'}
+            {tab === 'orders' ? '📋 Orders' : tab === 'menu' ? '🍽️ Menu' : '👥 Family'}
           </button>
         ))}
       </div>
+
+      {/* Orders tab */}
+      {view === 'orders' && (
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-gray-400">Tonight&apos;s orders so far</p>
+            <button onClick={loadOrders} className="text-xs text-orange-500 active:opacity-60">
+              Refresh
+            </button>
+          </div>
+
+          {orders.length === 0 ? (
+            <div className="bg-white rounded-2xl p-6 text-center border border-orange-100">
+              <div className="text-3xl mb-2">🤫</div>
+              <p className="text-gray-400 text-sm">No orders yet tonight</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="bg-white rounded-2xl p-4 border border-orange-100"
+                >
+                  <p className="font-bold text-gray-900 mb-2">
+                    👤 {order.family_members.name}
+                  </p>
+                  {order.order_items.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {order.order_items.map((oi, i) => (
+                        <span
+                          key={i}
+                          className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full text-sm font-medium border border-orange-200"
+                        >
+                          {oi.menu_items?.name ?? '?'}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {order.notes ? (
+                    <p className="text-sm text-gray-600 italic border-t border-gray-100 pt-2 mt-1">
+                      &ldquo;{order.notes}&rdquo;
+                    </p>
+                  ) : order.order_items.length === 0 ? (
+                    <p className="text-sm text-gray-400 italic">No selection yet</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Menu tab */}
       {view === 'menu' && (

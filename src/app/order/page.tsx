@@ -200,10 +200,19 @@ export default function OrderPage() {
           </div>
         )}
 
-        {/* Notes */}
+        {/* Custom request */}
         <div className="mt-4">
+          {menuItems.length > 0 && (
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400 font-medium">OR</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+          )}
           <label className="block text-sm font-medium text-gray-600 mb-2">
-            Special requests / notes
+            {menuItems.length > 0
+              ? "Want something different? Write your own request"
+              : "What do you want tonight?"}
           </label>
           <textarea
             value={notes}
@@ -211,7 +220,11 @@ export default function OrderPage() {
               setNotes(e.target.value)
               if (submitted) setSubmitted(false)
             }}
-            placeholder="Any modifications, allergies, or special requests..."
+            placeholder={
+              menuItems.length > 0
+                ? "e.g. Just a salad for me, or can you do pasta?"
+                : "e.g. Pizza, or just a salad please..."
+            }
             rows={3}
             className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-400 resize-none"
           />
