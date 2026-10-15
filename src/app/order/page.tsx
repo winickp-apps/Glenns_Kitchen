@@ -227,7 +227,7 @@ export default function OrderPage() {
         )}
         <button
           onClick={submitOrder}
-          disabled={submitting || menuItems.length === 0}
+          disabled={submitting}
           className={`w-full py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 ${
             submitted
               ? 'bg-green-500 text-white'
